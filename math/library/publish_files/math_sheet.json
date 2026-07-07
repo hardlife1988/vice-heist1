@@ -1,0 +1,662 @@
+{
+  "game": "Vice Heist",
+  "version": "1.0.0",
+  "generated_at": "2026-07-07T15:53:47.374997Z",
+  "config": {
+    "name": "Vice Heist",
+    "version": "1.0.0",
+    "rtp_target": 0.96,
+    "reels": 5,
+    "rows": 3,
+    "num_paylines": 20,
+    "min_bet": 0.2,
+    "max_bet": 100.0,
+    "default_bet": 1.0,
+    "coin_value": 0.01,
+    "reel_lengths": [
+      40,
+      40,
+      40,
+      40,
+      40
+    ],
+    "paylines": [
+      [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      [
+        0,
+        1,
+        2,
+        1,
+        0
+      ],
+      [
+        2,
+        1,
+        0,
+        1,
+        2
+      ],
+      [
+        0,
+        0,
+        1,
+        2,
+        2
+      ],
+      [
+        2,
+        2,
+        1,
+        0,
+        0
+      ],
+      [
+        1,
+        0,
+        0,
+        0,
+        1
+      ],
+      [
+        1,
+        2,
+        2,
+        2,
+        1
+      ],
+      [
+        0,
+        1,
+        0,
+        1,
+        0
+      ],
+      [
+        2,
+        1,
+        2,
+        1,
+        2
+      ],
+      [
+        1,
+        0,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        2,
+        1,
+        2,
+        1
+      ],
+      [
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      [
+        2,
+        2,
+        1,
+        2,
+        2
+      ],
+      [
+        1,
+        1,
+        0,
+        1,
+        1
+      ],
+      [
+        1,
+        1,
+        2,
+        1,
+        1
+      ],
+      [
+        0,
+        1,
+        1,
+        1,
+        0
+      ],
+      [
+        2,
+        1,
+        1,
+        1,
+        2
+      ],
+      [
+        0,
+        2,
+        0,
+        2,
+        0
+      ]
+    ],
+    "payline_pays": {
+      "WILD": {
+        "5": 500,
+        "4": 100,
+        "3": 25
+      },
+      "BOSS": {
+        "5": 200,
+        "4": 50,
+        "3": 10
+      },
+      "FEMME": {
+        "5": 150,
+        "4": 40,
+        "3": 8
+      },
+      "SAFE": {
+        "5": 100,
+        "4": 30,
+        "3": 6
+      },
+      "GUN": {
+        "5": 75,
+        "4": 20,
+        "3": 5
+      },
+      "MASK": {
+        "5": 50,
+        "4": 15,
+        "3": 4
+      },
+      "ACE": {
+        "5": 30,
+        "4": 10,
+        "3": 3
+      },
+      "KING": {
+        "5": 25,
+        "4": 8,
+        "3": 2
+      },
+      "QUEEN": {
+        "5": 20,
+        "4": 6,
+        "3": 2
+      },
+      "JACK": {
+        "5": 15,
+        "4": 5,
+        "3": 1
+      }
+    },
+    "scatter_pays": {
+      "5": 20,
+      "4": 5,
+      "3": 2
+    },
+    "free_spin_awards": {
+      "3": 10,
+      "4": 15,
+      "5": 20
+    },
+    "free_spin_multiplier": 2
+  },
+  "paytable": {
+    "payline_pays": {
+      "WILD": {
+        "5": 500,
+        "4": 100,
+        "3": 25
+      },
+      "BOSS": {
+        "5": 200,
+        "4": 50,
+        "3": 10
+      },
+      "FEMME": {
+        "5": 150,
+        "4": 40,
+        "3": 8
+      },
+      "SAFE": {
+        "5": 100,
+        "4": 30,
+        "3": 6
+      },
+      "GUN": {
+        "5": 75,
+        "4": 20,
+        "3": 5
+      },
+      "MASK": {
+        "5": 50,
+        "4": 15,
+        "3": 4
+      },
+      "ACE": {
+        "5": 30,
+        "4": 10,
+        "3": 3
+      },
+      "KING": {
+        "5": 25,
+        "4": 8,
+        "3": 2
+      },
+      "QUEEN": {
+        "5": 20,
+        "4": 6,
+        "3": 2
+      },
+      "JACK": {
+        "5": 15,
+        "4": 5,
+        "3": 1
+      }
+    },
+    "scatter_pays": {
+      "5": 20,
+      "4": 5,
+      "3": 2
+    },
+    "free_spin_awards": {
+      "3": 10,
+      "4": 15,
+      "5": 20
+    },
+    "free_spin_multiplier": 2,
+    "wild_substitutes_for": "all symbols except SCATTER",
+    "pays_on": "left to right, minimum 3 of a kind"
+  },
+  "reel_data": {
+    "reel_count": 5,
+    "row_count": 3,
+    "strips": [
+      [
+        "JACK",
+        "QUEEN",
+        "KING",
+        "ACE",
+        "MASK",
+        "GUN",
+        "SAFE",
+        "FEMME",
+        "BOSS",
+        "WILD",
+        "JACK",
+        "QUEEN",
+        "KING",
+        "ACE",
+        "MASK",
+        "GUN",
+        "SAFE",
+        "FEMME",
+        "SCATTER",
+        "JACK",
+        "QUEEN",
+        "KING",
+        "ACE",
+        "MASK",
+        "GUN",
+        "BOSS",
+        "SAFE",
+        "FEMME",
+        "WILD",
+        "JACK",
+        "QUEEN",
+        "MASK",
+        "GUN",
+        "ACE",
+        "KING",
+        "SCATTER",
+        "JACK",
+        "QUEEN",
+        "JACK",
+        "JACK"
+      ],
+      [
+        "JACK",
+        "QUEEN",
+        "KING",
+        "ACE",
+        "MASK",
+        "GUN",
+        "SAFE",
+        "FEMME",
+        "BOSS",
+        "JACK",
+        "QUEEN",
+        "KING",
+        "ACE",
+        "MASK",
+        "GUN",
+        "SAFE",
+        "FEMME",
+        "SCATTER",
+        "JACK",
+        "QUEEN",
+        "KING",
+        "ACE",
+        "MASK",
+        "GUN",
+        "BOSS",
+        "SAFE",
+        "WILD",
+        "FEMME",
+        "JACK",
+        "QUEEN",
+        "KING",
+        "ACE",
+        "MASK",
+        "GUN",
+        "SCATTER",
+        "JACK",
+        "QUEEN",
+        "KING",
+        "ACE",
+        "JACK"
+      ],
+      [
+        "JACK",
+        "QUEEN",
+        "KING",
+        "ACE",
+        "MASK",
+        "GUN",
+        "SAFE",
+        "FEMME",
+        "BOSS",
+        "WILD",
+        "JACK",
+        "QUEEN",
+        "KING",
+        "ACE",
+        "MASK",
+        "GUN",
+        "SAFE",
+        "FEMME",
+        "SCATTER",
+        "JACK",
+        "QUEEN",
+        "KING",
+        "ACE",
+        "MASK",
+        "GUN",
+        "BOSS",
+        "SAFE",
+        "FEMME",
+        "WILD",
+        "JACK",
+        "QUEEN",
+        "MASK",
+        "GUN",
+        "ACE",
+        "KING",
+        "SCATTER",
+        "JACK",
+        "QUEEN",
+        "JACK",
+        "JACK"
+      ],
+      [
+        "JACK",
+        "QUEEN",
+        "KING",
+        "ACE",
+        "MASK",
+        "GUN",
+        "SAFE",
+        "FEMME",
+        "BOSS",
+        "JACK",
+        "QUEEN",
+        "KING",
+        "ACE",
+        "MASK",
+        "GUN",
+        "SAFE",
+        "FEMME",
+        "SCATTER",
+        "JACK",
+        "QUEEN",
+        "KING",
+        "ACE",
+        "MASK",
+        "GUN",
+        "BOSS",
+        "SAFE",
+        "WILD",
+        "FEMME",
+        "JACK",
+        "QUEEN",
+        "KING",
+        "ACE",
+        "MASK",
+        "GUN",
+        "SCATTER",
+        "JACK",
+        "QUEEN",
+        "KING",
+        "ACE",
+        "JACK"
+      ],
+      [
+        "JACK",
+        "QUEEN",
+        "KING",
+        "ACE",
+        "MASK",
+        "GUN",
+        "SAFE",
+        "FEMME",
+        "BOSS",
+        "WILD",
+        "JACK",
+        "QUEEN",
+        "KING",
+        "ACE",
+        "MASK",
+        "GUN",
+        "SAFE",
+        "FEMME",
+        "SCATTER",
+        "JACK",
+        "QUEEN",
+        "KING",
+        "ACE",
+        "MASK",
+        "GUN",
+        "BOSS",
+        "SAFE",
+        "FEMME",
+        "WILD",
+        "JACK",
+        "QUEEN",
+        "MASK",
+        "GUN",
+        "ACE",
+        "KING",
+        "SCATTER",
+        "JACK",
+        "QUEEN",
+        "JACK",
+        "JACK"
+      ]
+    ],
+    "stop_counts": [
+      40,
+      40,
+      40,
+      40,
+      40
+    ],
+    "symbol_frequencies": [
+      {
+        "JACK": 7,
+        "QUEEN": 5,
+        "KING": 4,
+        "ACE": 4,
+        "MASK": 4,
+        "GUN": 4,
+        "SAFE": 3,
+        "FEMME": 3,
+        "BOSS": 2,
+        "WILD": 2,
+        "SCATTER": 2
+      },
+      {
+        "JACK": 6,
+        "QUEEN": 5,
+        "KING": 5,
+        "ACE": 5,
+        "MASK": 4,
+        "GUN": 4,
+        "SAFE": 3,
+        "FEMME": 3,
+        "BOSS": 2,
+        "SCATTER": 2,
+        "WILD": 1
+      },
+      {
+        "JACK": 7,
+        "QUEEN": 5,
+        "KING": 4,
+        "ACE": 4,
+        "MASK": 4,
+        "GUN": 4,
+        "SAFE": 3,
+        "FEMME": 3,
+        "BOSS": 2,
+        "WILD": 2,
+        "SCATTER": 2
+      },
+      {
+        "JACK": 6,
+        "QUEEN": 5,
+        "KING": 5,
+        "ACE": 5,
+        "MASK": 4,
+        "GUN": 4,
+        "SAFE": 3,
+        "FEMME": 3,
+        "BOSS": 2,
+        "SCATTER": 2,
+        "WILD": 1
+      },
+      {
+        "JACK": 7,
+        "QUEEN": 5,
+        "KING": 4,
+        "ACE": 4,
+        "MASK": 4,
+        "GUN": 4,
+        "SAFE": 3,
+        "FEMME": 3,
+        "BOSS": 2,
+        "WILD": 2,
+        "SCATTER": 2
+      }
+    ]
+  },
+  "simulation_report": {
+    "game": "Vice Heist",
+    "version": "1.0.0",
+    "simulation": {
+      "paid_spins": 1000000,
+      "free_spins": 382945,
+      "total_spins": 1382945,
+      "bet_per_line": 1.0,
+      "total_bet_per_spin": 20.0,
+      "num_paylines": 20
+    },
+    "results": {
+      "total_bet": 20000000.0,
+      "total_win": 7106120.0,
+      "payline_win": 4946900.0,
+      "scatter_win": 2159220.0,
+      "rtp": 0.355306,
+      "rtp_percent": 35.5306,
+      "hit_rate": 0.286334,
+      "hit_rate_percent": 28.6334,
+      "free_spin_triggers": 26433,
+      "free_spins_per_trigger": 14.49
+    },
+    "symbol_win_frequency": {
+      "MASK": {
+        "3": 66629,
+        "4": 8177,
+        "5": 1447
+      },
+      "GUN": {
+        "3": 66671,
+        "4": 8315,
+        "5": 1446
+      },
+      "JACK": {
+        "4": 32651,
+        "3": 201120,
+        "5": 9515
+      },
+      "QUEEN": {
+        "3": 106577,
+        "4": 15540,
+        "5": 3297
+      },
+      "ACE": {
+        "3": 77746,
+        "4": 11856,
+        "5": 2083
+      },
+      "KING": {
+        "3": 77776,
+        "4": 11852,
+        "5": 2099
+      },
+      "SAFE": {
+        "3": 37362,
+        "4": 3812,
+        "5": 550
+      },
+      "FEMME": {
+        "3": 37301,
+        "4": 3743,
+        "5": 546
+      },
+      "BOSS": {
+        "3": 17352,
+        "4": 1494,
+        "5": 152
+      },
+      "WILD": {
+        "5": 2
+      }
+    },
+    "elapsed_seconds": 23.76,
+    "generated_at": "2026-07-07T15:53:47.374997Z"
+  }
+}
