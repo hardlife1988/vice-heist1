@@ -109,24 +109,10 @@ export const Reels: React.FC = () => {
           </mesh>
 
           {/* Symbols on drum */}
-          {(renderStrips ? renderStrips[i] : Array.from({ length: SYMBOLS_PER_REEL }, (_, s) => {
-            // Map visible rows from displayGrid, fill rest with random
-            const angle = s * SYMBOL_ANGLE;
-            const currentAngle = currentAngles.current[i];
-            const normalised = ((currentAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
-            const landingIdx = Math.round(normalised / SYMBOL_ANGLE) % SYMBOLS_PER_REEL;
-            for (let row = 0; row < 3; row++) {
-              const idx = ((landingIdx + (1 - row)) % SYMBOLS_PER_REEL + SYMBOLS_PER_REEL) % SYMBOLS_PER_REEL;
-              if (idx === s) return displayGrid[i]?.[row] ?? 'J';
-            }
-            return stripsRef.current[i][s];
-          })).map((symbol, sIdx) => (
+          {(renderStrips ?? stripsRef.current)[i].map((symbol, sIdx) => (
             <group key={sIdx} rotation={[sIdx * SYMBOL_ANGLE, 0, 0]}>
               <group position={[0, 0, REEL_RADIUS]}>
-                <SymbolMesh
-                  type={symbol as SymbolType}
-                  winning={!isSpinning && winSet.has(`${i}-${Math.round(sIdx * SYMBOL_ANGLE / SYMBOL_ANGLE) % 3}`)}
-                />
+                <SymbolMesh type={symbol as SymbolType} />
               </group>
             </group>
           ))}

@@ -7,6 +7,7 @@ import { SymbolType } from '../game/GameLogic';
 interface SymbolMeshProps {
   type: SymbolType;
   position?: [number, number, number];
+  winning?: boolean;
 }
 
 const materials = {
