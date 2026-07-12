@@ -1,6 +1,6 @@
 {
   "extends": "../../tsconfig.base.json",
-  "include": ["src/**/*"],
+  "include": ["src/**/*", ".svelte-kit/ambient.d.ts", ".svelte-kit/non-ambient.d.ts"],
   "exclude": ["node_modules", "build", "dist", ".svelte-kit", "**/*.test.ts"],
   "compilerOptions": {
     "noEmit": true,

@@ -1,16 +1,14 @@
 /**
  * Vice Heist — svelte-context wiring.
  *
- * Per math-sdk/docs/fe_docs/context.md, an entry-level component
- * (+page.svelte or a storybook story) must call setContext() before any
- * descendant component reads getContext(). This is a placeholder wiring
- * point — the actual eventEmitter/xstate/layout/app state creators come
- * from Stake's shared packages (pixi-svelte, utils-event-emitter,
- * utils-xstate, utils-layout), which are not yet vendored here.
- *
- * TODO: once those packages are available, replace the stubs below with
- * their real setContextEventEmitter / setContextXstate / setContextLayout /
- * setContextApp calls.
+ * Per math-sdk/docs/fe_docs/context.md, an entry-level component must set
+ * up shared context before descendants read it. pixi-svelte's own App
+ * context (createApp/setContextApp) is created directly inside
+ * components/Game.svelte, next to the <App> it renders (matching
+ * pixi-svelte's documented pattern) — this function is a placeholder for
+ * the *other* cross-cutting context this game will eventually need
+ * (a message-bus event emitter for RGS/book-event plumbing, a layout
+ * store for responsive sizing) once those are built out.
  */
 
 export interface GameContext {
@@ -18,9 +16,7 @@ export interface GameContext {
 }
 
 export const setContext = (): GameContext => {
-  // TODO: setContextEventEmitter({ eventEmitter })
-  // TODO: setContextXstate({ stateXstate, stateXstateDerived })
-  // TODO: setContextLayout({ stateLayout, stateLayoutDerived })
-  // TODO: setContextApp({ stateApp })
+  // TODO: set up an event-emitter context once RGS wiring lands
+  // TODO: set up a layout context once responsive sizing is implemented
   return { gameId: "vice_heist" };
 };
