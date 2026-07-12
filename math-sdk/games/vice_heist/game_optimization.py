@@ -24,7 +24,7 @@ class OptimizationSetup:
                     "freegame": ConstructConditions(
                         rtp=0.367, hr=200, search_conditions={"symbol": "scatter"}
                     ).return_dict(),
-                    "basegame": ConstructConditions(hr=3.5, rtp=0.593).return_dict(),
+                    "basegame": ConstructConditions(hr=3.5, rtp=0.592).return_dict(),
                 },
                 "scaling": ConstructScaling(
                     [
