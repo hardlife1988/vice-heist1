@@ -35,44 +35,52 @@ class GameConfig(Config):
 
         # ── Paytable ────────────────────────────────────────────────────
         # Pays are x-bet multipliers (total_bet × value)
+        #
+        # Values are rounded to the nearest 0.10x (minimum non-zero 0.10x) so
+        # every payout lands on a multiple of 10 "cents" once scaled to the
+        # RGS lookup-table's integer format -- required by Stake's RGS
+        # verification (`verify_lookup_format`). The original 3-decimal
+        # values were finer-grained than the format allows and only surfaced
+        # once the free-spin hang above was fixed and format checks could
+        # actually run.
         self.paytable = {
             # Wild
             (5, "W"):  79.5,
-            (4, "W"):  4.28,
-            (3, "W"):  0.64,
+            (4, "W"):  4.3,
+            (3, "W"):  0.6,
             # H1 Diamond — top premium
             (5, "H1"): 16.0,
-            (4, "H1"): 1.60,
-            (3, "H1"): 0.265,
+            (4, "H1"): 1.6,
+            (3, "H1"): 0.3,
             # H2 Gold Bar
-            (5, "H2"): 7.43,
-            (4, "H2"): 0.795,
-            (3, "H2"): 0.127,
+            (5, "H2"): 7.4,
+            (4, "H2"): 0.8,
+            (3, "H2"): 0.1,
             # H3 Cash Stack
-            (5, "H3"): 4.79,
-            (4, "H3"): 0.58,
-            (3, "H3"): 0.107,
+            (5, "H3"): 4.8,
+            (4, "H3"): 0.6,
+            (3, "H3"): 0.1,
             # H4 Heist Bag
-            (5, "H4"): 3.19,
-            (4, "H4"): 0.428,
-            (3, "H4"): 0.086,
+            (5, "H4"): 3.2,
+            (4, "H4"): 0.4,
+            (3, "H4"): 0.1,
             # H5 Vault
-            (5, "H5"): 2.13,
-            (4, "H5"): 0.295,
-            (3, "H5"): 0.064,
+            (5, "H5"): 2.1,
+            (4, "H5"): 0.3,
+            (3, "H5"): 0.1,
             # Low cards
-            (5, "A"):  1.06,
-            (4, "A"):  0.149,
-            (3, "A"):  0.043,
-            (5, "K"):  0.638,
-            (4, "K"):  0.106,
-            (3, "K"):  0.027,
-            (5, "Q"):  0.638,
-            (4, "Q"):  0.106,
-            (3, "Q"):  0.027,
-            (5, "J"):  0.50,
-            (4, "J"):  0.085,
-            (3, "J"):  0.021,
+            (5, "A"):  1.1,
+            (4, "A"):  0.1,
+            (3, "A"):  0.1,
+            (5, "K"):  0.6,
+            (4, "K"):  0.1,
+            (3, "K"):  0.1,
+            (5, "Q"):  0.6,
+            (4, "Q"):  0.1,
+            (3, "Q"):  0.1,
+            (5, "J"):  0.5,
+            (4, "J"):  0.1,
+            (3, "J"):  0.1,
         }
 
         # ── Paylines (20) ───────────────────────────────────────────────
@@ -108,13 +116,22 @@ class GameConfig(Config):
         self.include_padding = True
 
         # ── Free-spin triggers (scatter count → free spins) ─────────────
-        # Cover all possible scatter counts (max 15 on a 5×3 grid).
+        # Cover all possible scatter counts (max 15 on a 5x3 grid).
         # Basegame: 3+ scatters award free spins
-        # Freegame retrigger: 2+ scatters award extra spins
+        # Freegame retrigger: 3+ scatters award extra spins
+        #
+        # NOTE: retrigger minimum was previously 2, paired with an ~12%
+        # per-cell scatter density on FR0/FRWCAP -- that combination made the
+        # expected retrigger spin-gain exceed the spin-cost, so free-spin
+        # sessions never terminated (confirmed by direct simulation: a
+        # session that should end after ~15-20 spins was still retriggering
+        # after 3,000+ iterations). Raised the retrigger floor to 3 and cut
+        # the FR0/FRWCAP scatter density from ~12% to ~4% (see reels/) so
+        # retriggers stay rare bonus events instead of a runaway loop.
         self.freespin_triggers = {
             self.basegame_type: {3: 10, 4: 15, 5: 20, 6: 20, 7: 20, 8: 20,
                                  9: 20, 10: 20, 11: 20, 12: 20, 13: 20, 14: 20, 15: 20},
-            self.freegame_type: {2: 3,  3: 5,  4: 8,  5: 12, 6: 12, 7: 12,
+            self.freegame_type: {3: 5,  4: 8,  5: 12, 6: 12, 7: 12,
                                  8: 12, 9: 12, 10: 12, 11: 12, 12: 12, 13: 12, 14: 12, 15: 12},
         }
         self.anticipation_triggers = {

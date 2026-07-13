@@ -12,7 +12,7 @@ Scatter symbols appear on all reels; 3+ Scatters trigger the Freegame
 Freegame:
 A separate reelstrip (FR0) is used for the freegame. Wilds gain a random
 multiplier attribute (2x-50x, weighted) any time they land during the
-freegame. 2+ Scatters retrigger extra spins (3/5/8/12+ depending on count).
+freegame. 3+ Scatters retrigger extra spins (5/8/12+ depending on count).
 
 Win evaluation:
 Line wins are evaluated with the SDK's Lines engine (win_type = "lines"),
