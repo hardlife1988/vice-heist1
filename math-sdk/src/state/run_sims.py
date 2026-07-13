@@ -267,5 +267,13 @@ def run_multi_process_sims(
                 process.join()
             print("Finished joining threads.")
             gamestate.combine(all_betmode_configs, betmode)
-            gamestate.get_betmode(betmode).lock_force_keys()
             manager.shutdown()
+
+    # Lock force keys once, after ALL batches for this betmode have run — not
+    # per-batch. `lock_force_keys()` converts `_force_keys` from a list to a
+    # tuple; calling it inside the batch loop above froze the list after
+    # batch 1, so batch 2+ crashed with "'tuple' object has no attribute
+    # 'append'" the moment any worker tried to record a forced condition,
+    # which cascaded into every subsequent thread failing to write output.
+    if not profiling:
+        gamestate.get_betmode(betmode).lock_force_keys()
