@@ -2,7 +2,7 @@ __pycache__
 */.pyc
 *.prof
 */setup.txt
-*/setup.toml
+**/setup.toml
 *.egg-info/
 */SOURCES.txt
 
@@ -23,7 +23,6 @@ __pycache__
 /env
 *.env
 *.DS_Store
-*.toml
 
 **/site/*
 
