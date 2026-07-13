@@ -1,8 +1,21 @@
-import React, { useRef, useMemo } from 'react';
+import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Text, Float, Trail } from '@react-three/drei';
+import { Float } from '@react-three/drei';
 import * as THREE from 'three';
 import { SymbolType } from '../game/GameLogic';
+
+import wTex from '../assets/symbols/W.webp';
+import scTex from '../assets/symbols/SC.webp';
+import bvTex from '../assets/symbols/BV.webp';
+import h1Tex from '../assets/symbols/H1.webp';
+import h2Tex from '../assets/symbols/H2.webp';
+import h3Tex from '../assets/symbols/H3.webp';
+import h4Tex from '../assets/symbols/H4.webp';
+import h5Tex from '../assets/symbols/H5.webp';
+import aTex from '../assets/symbols/A.webp';
+import kTex from '../assets/symbols/K.webp';
+import qTex from '../assets/symbols/Q.webp';
+import jTex from '../assets/symbols/J.webp';
 
 interface SymbolMeshProps {
   type: SymbolType;
@@ -10,92 +23,59 @@ interface SymbolMeshProps {
   winning?: boolean;
 }
 
-const materials = {
-  W: new THREE.MeshPhysicalMaterial({ color: '#FFD700', emissive: '#FFA500', emissiveIntensity: 2, metalness: 1, roughness: 0.1 }),
-  SC: new THREE.MeshStandardMaterial({ color: '#8B4513', metalness: 0.8, roughness: 0.4 }),
-  BV: new THREE.MeshStandardMaterial({ color: '#C0C0C0', metalness: 1, roughness: 0.2 }),
-  H1: new THREE.MeshPhysicalMaterial({ color: '#00F5FF', transmission: 0.9, thickness: 1, roughness: 0.1, ior: 2.5 }),
-  H2: new THREE.MeshStandardMaterial({ color: '#FFD700', metalness: 1, roughness: 0.2 }),
-  H3: new THREE.MeshStandardMaterial({ color: '#228B22', roughness: 0.8 }),
-  H4: new THREE.MeshStandardMaterial({ color: '#1A1A1A', roughness: 0.9 }),
-  H5: new THREE.MeshStandardMaterial({ color: '#404040', metalness: 0.8, roughness: 0.5 }),
-  A: new THREE.MeshStandardMaterial({ color: '#FF006E', metalness: 0.5, roughness: 0.2 }),
-  K: new THREE.MeshStandardMaterial({ color: '#9D00FF', metalness: 0.5, roughness: 0.2 }),
-  Q: new THREE.MeshStandardMaterial({ color: '#00F5FF', metalness: 0.5, roughness: 0.2 }),
-  J: new THREE.MeshStandardMaterial({ color: '#FF9500', metalness: 0.5, roughness: 0.2 }),
+const TEXTURE_SOURCES: Record<SymbolType, string> = {
+  W: wTex,
+  SC: scTex,
+  BV: bvTex,
+  H1: h1Tex,
+  H2: h2Tex,
+  H3: h3Tex,
+  H4: h4Tex,
+  H5: h5Tex,
+  A: aTex,
+  K: kTex,
+  Q: qTex,
+  J: jTex,
 };
 
-const geometries = {
-  W: new THREE.SphereGeometry(0.6, 32, 32),
-  SC: new THREE.BoxGeometry(1, 0.8, 1),
-  BV: new THREE.CylinderGeometry(0.7, 0.7, 0.4, 32),
-  H1: new THREE.OctahedronGeometry(0.6, 0),
-  H2: new THREE.BoxGeometry(1.2, 0.4, 0.8),
-  H3: new THREE.BoxGeometry(1, 0.6, 0.6),
-  H4: new THREE.CylinderGeometry(0.5, 0.6, 1, 16),
-  H5: new THREE.BoxGeometry(1.2, 1.2, 1),
-  Card: new THREE.BoxGeometry(0.8, 1, 0.1),
-};
+const textureLoader = new THREE.TextureLoader();
+const textureCache = new Map<string, THREE.Texture>();
 
-export const SymbolMesh: React.FC<SymbolMeshProps> = ({ type, position = [0, 0, 0] }) => {
+function getTexture(src: string): THREE.Texture {
+  let tex = textureCache.get(src);
+  if (!tex) {
+    tex = textureLoader.load(src);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    textureCache.set(src, tex);
+  }
+  return tex;
+}
+
+const planeGeometry = new THREE.PlaneGeometry(1.15, 1.15);
+
+export const SymbolMesh: React.FC<SymbolMeshProps> = ({ type, position = [0, 0, 0], winning = false }) => {
   const group = useRef<THREE.Group>(null);
+  const texture = getTexture(TEXTURE_SOURCES[type]);
 
   useFrame((state) => {
     if (!group.current) return;
-    if (type === 'W' || type === 'H1') {
-      group.current.rotation.y += 0.02;
+    if (winning) {
+      const pulse = 1 + Math.sin(state.clock.elapsedTime * 6) * 0.08;
+      group.current.scale.set(pulse, pulse, pulse);
+    } else {
+      group.current.scale.set(1, 1, 1);
     }
   });
 
-  const renderGeometry = () => {
-    switch (type) {
-      case 'W':
-        return (
-          <mesh geometry={geometries.W} material={materials.W}>
-            <pointLight color="#FFD700" intensity={2} distance={2} />
-          </mesh>
-        );
-      case 'SC':
-        return <mesh geometry={geometries.SC} material={materials.SC} />;
-      case 'BV':
-        return (
-          <mesh geometry={geometries.BV} material={materials.BV} rotation={[Math.PI/2, 0, 0]} />
-        );
-      case 'H1':
-        return <mesh geometry={geometries.H1} material={materials.H1} />;
-      case 'H2':
-        return <mesh geometry={geometries.H2} material={materials.H2} />;
-      case 'H3':
-        return (
-          <group>
-            <mesh geometry={geometries.H3} material={materials.H3} position={[0,-0.2,0]}/>
-            <mesh geometry={geometries.H3} material={materials.H3} position={[0.1,0,0]} rotation={[0,0.1,0]}/>
-            <mesh geometry={geometries.H3} material={materials.H3} position={[-0.1,0.2,0]} rotation={[0,-0.1,0]}/>
-          </group>
-        );
-      case 'H4':
-        return <mesh geometry={geometries.H4} material={materials.H4} />;
-      case 'H5':
-        return <mesh geometry={geometries.H5} material={materials.H5} />;
-      case 'A':
-      case 'K':
-      case 'Q':
-      case 'J':
-        return (
-          <group>
-            <mesh geometry={geometries.Card} material={materials[type]} />
-            <Text position={[0, 0, 0.06]} fontSize={0.6} color="white" font="https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2" anchorX="center" anchorY="middle">
-              {type}
-            </Text>
-          </group>
-        );
-    }
-  };
-
   return (
     <group position={position} ref={group}>
-      <Float speed={2} rotationIntensity={0.2} floatIntensity={0.5}>
-        {renderGeometry()}
+      <Float speed={2} rotationIntensity={0.15} floatIntensity={0.4}>
+        <mesh geometry={planeGeometry}>
+          <meshBasicMaterial map={texture} transparent toneMapped={false} />
+        </mesh>
+        {winning && (
+          <pointLight color="#FFD700" intensity={1.5} distance={2} position={[0, 0, 0.3]} />
+        )}
       </Float>
     </group>
   );
