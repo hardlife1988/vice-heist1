@@ -1,0 +1,30 @@
+{
+  "name": "@workspace/vice-heist-pixi",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
+  },
+  "dependencies": {
+    "@xstate/svelte": "^5.0.0",
+    "howler": "^2.2.4",
+    "pixi-svelte": "^2.1.0",
+    "pixi.js": "^8.6.0",
+    "xstate": "^5.19.0"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-static": "^3.0.6",
+    "@sveltejs/kit": "^2.9.0",
+    "@sveltejs/vite-plugin-svelte": "^4.0.1",
+    "@types/howler": "^2.2.13",
+    "@types/node": "^22.10.0",
+    "svelte": "^5.4.0",
+    "svelte-check": "^4.1.0",
+    "typescript": "~5.9.3",
+    "vite": "^5.4.11"
+  }
+}

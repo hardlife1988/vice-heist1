@@ -242,30 +242,66 @@ def run_multi_process_sims(
                 simulation_seeds=simulation_seeds,
             )
         else:
-            for thread in range(threads):
-                process = Process(
-                    target=gamestate.run_sims,
-                    args=(
-                        all_betmode_configs,
-                        betmode,
-                        criteria_assignment,
-                        threads,
-                        num_repeats,
-                        sims_per_thread,
-                        thread,
-                        repeat,
-                        compress,
-                        write_event_list,
-                        simulation_seeds,
-                    ),
+            # A worker process can die (crash, OOM-kill, etc.) without ever
+            # raising in the parent -- `process.join()` returns regardless of
+            # how the child exited. Previously nothing checked `exitcode`, so
+            # a dead worker silently left its batch's temp book/LUT files
+            # missing, and the failure only surfaced much later (and far less
+            # clearly) as a `FileNotFoundError` deep in
+            # `output_lookup_and_force_files` while stitching temp files
+            # together. Reproduced directly at production-like scale
+            # (60k+ sims/mode): one worker out of four vanished mid-batch
+            # with no error, only a hole in `temp_multi_threaded_files/`.
+            # Now: check every process's exitcode after join, and retry just
+            # the failed thread indices (a few attempts) before giving up
+            # with a clear error naming which threads failed.
+            max_attempts = 3
+            pending_threads = list(range(threads))
+            for attempt in range(1, max_attempts + 1):
+                processes = {}
+                for thread in pending_threads:
+                    process = Process(
+                        target=gamestate.run_sims,
+                        args=(
+                            all_betmode_configs,
+                            betmode,
+                            criteria_assignment,
+                            threads,
+                            num_repeats,
+                            sims_per_thread,
+                            thread,
+                            repeat,
+                            compress,
+                            write_event_list,
+                            simulation_seeds,
+                        ),
+                    )
+                    print("Started thread", thread, f"(attempt {attempt})" if attempt > 1 else "")
+                    process.start()
+                    processes[thread] = process
+                print("All threads are online.")
+                for process in processes.values():
+                    process.join()
+                print("Finished joining threads.")
+
+                failed_threads = [t for t, p in processes.items() if p.exitcode != 0]
+                if not failed_threads:
+                    pending_threads = []
+                    break
+                warn(
+                    f"\nWorker thread(s) {failed_threads} for betmode '{betmode}' batch "
+                    f"{repeat + 1}/{num_repeats} exited with a non-zero/None exitcode "
+                    f"(attempt {attempt}/{max_attempts}) -- retrying just those threads."
                 )
-                print("Started thread", thread)
-                process.start()
-                processes += [process]
-            print("All threads are online.")
-            for process in processes:
-                process.join()
-            print("Finished joining threads.")
+                pending_threads = failed_threads
+
+            if pending_threads:
+                raise RuntimeError(
+                    f"Simulation worker thread(s) {pending_threads} for betmode '{betmode}' "
+                    f"batch {repeat + 1}/{num_repeats} failed after {max_attempts} attempts. "
+                    "Aborting instead of silently publishing an incomplete lookup table."
+                )
+
             gamestate.combine(all_betmode_configs, betmode)
             manager.shutdown()
 
