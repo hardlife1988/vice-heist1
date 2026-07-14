@@ -30,11 +30,13 @@ export const SPECIAL_SYMBOLS: Record<string, SymbolId[]> = {
   bonus: ["BV"],
 };
 
-// Pays are x-bet multipliers, keyed by [count][symbol].
+// Pays are x-bet multipliers, keyed by [count][symbol]. Rounded to the
+// nearest 0.10x (min 0.10x) to match the RGS lookup-table's required payout
+// granularity -- kept in sync with math-sdk/games/vice_heist/game_config.py.
 export const PAYTABLE: Record<number, Partial<Record<SymbolId, number>>> = {
-  5: { W: 79.5, H1: 16.0, H2: 7.43, H3: 4.79, H4: 3.19, H5: 2.13, A: 1.06, K: 0.638, Q: 0.638, J: 0.5 },
-  4: { W: 4.28, H1: 1.6, H2: 0.795, H3: 0.58, H4: 0.428, H5: 0.295, A: 0.149, K: 0.106, Q: 0.106, J: 0.085 },
-  3: { W: 0.64, H1: 0.265, H2: 0.127, H3: 0.107, H4: 0.086, H5: 0.064, A: 0.043, K: 0.027, Q: 0.027, J: 0.021 },
+  5: { W: 79.5, H1: 16.0, H2: 7.4, H3: 4.8, H4: 3.2, H5: 2.1, A: 1.1, K: 0.6, Q: 0.6, J: 0.5 },
+  4: { W: 4.3, H1: 1.6, H2: 0.8, H3: 0.6, H4: 0.4, H5: 0.3, A: 0.1, K: 0.1, Q: 0.1, J: 0.1 },
+  3: { W: 0.6, H1: 0.3, H2: 0.1, H3: 0.1, H4: 0.1, H5: 0.1, A: 0.1, K: 0.1, Q: 0.1, J: 0.1 },
 };
 
 // row indices per reel, top(0)/mid(1)/bottom(2) — mirrors game_config.py's self.paylines
@@ -61,10 +63,12 @@ export const PAYLINES: number[][] = [
   [0, 2, 0, 2, 0],
 ];
 
-// scatter count -> free spins awarded (basegame trigger / freegame retrigger)
+// scatter count -> free spins awarded (basegame trigger / freegame retrigger).
+// Retrigger floor is 3+ scatters (raised from 2) -- see math-sdk fix notes:
+// 2+ combined with the old reel density made free-spin sessions run forever.
 export const FREESPIN_TRIGGERS = {
   base: { 3: 10, 4: 15, 5: 20 } as Record<number, number>,
-  free: { 2: 3, 3: 5, 4: 8, 5: 12 } as Record<number, number>,
+  free: { 3: 5, 4: 8, 5: 12 } as Record<number, number>,
 };
 
 // Wild multiplier weights during freegame only (basegame wilds never carry a multiplier).

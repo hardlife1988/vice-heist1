@@ -8,9 +8,9 @@ import type { Book } from "./bookEvents";
 
 export const mockBook: Book = {
   id: 1,
-  payoutMultiplier: 4.79,
+  payoutMultiplier: 4.8,
   criteria: "basegame_win",
-  baseGameWins: 4.79,
+  baseGameWins: 4.8,
   freeGameWins: 0,
   events: [
     {
@@ -30,11 +30,11 @@ export const mockBook: Book = {
     {
       index: 1,
       type: "winInfo",
-      totalWin: 4.79,
+      totalWin: 4.8,
       wins: [
         {
           symbol: "H3",
-          win: 4.79,
+          win: 4.8,
           positions: [
             { reel: 0, row: 0 },
             { reel: 1, row: 0 },

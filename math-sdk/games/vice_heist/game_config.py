@@ -193,6 +193,23 @@ class GameConfig(Config):
 
         mode_maxwins = {"base": self.wincap, "bonus": self.wincap}
 
+        # Wincap quota calibration: the quota IS the live probability of
+        # landing exactly on the forced max-win (`win_criteria`), and its
+        # contribution to a mode's RTP is simply quota * wincap / cost --
+        # fixed by that arithmetic, not something the optimizer can reweight
+        # away. At the previous quota=0.001 (1-in-1000) with wincap=10000x,
+        # that's a flat 1000% RTP contribution from the max win ALONE in
+        # base mode (cost=1) -- confirmed directly from a real 60k-sim run,
+        # not a sampling artifact: every one of the 60 forced wincap rows in
+        # the published lookup table carried full weight, together
+        # accounting for half of the entire base-mode payout sum. Rebalanced
+        # both modes so the max win stays a rare, small slice of RTP (roughly
+        # 2%) like a real jackpot event, instead of dominating it:
+        #   base:  quota 0.001 -> 0.000002  (contributes ~0.0192, ~2% of 0.96 RTP)
+        #   bonus: quota 0.001 -> 0.000192  (contributes ~0.0192, ~2% of 0.96 RTP; cost=100 already
+        #                                    dampens this bucket 100x vs base, so it needed far less cutting)
+        # The quota freed up from each mode's wincap bucket is folded back
+        # into that mode's other distributions so quotas still sum to 1.0.
         self.bet_modes = [
             BetMode(
                 name="base",
@@ -205,12 +222,21 @@ class GameConfig(Config):
                 distributions=[
                     Distribution(
                         criteria="wincap",
-                        quota=0.001,
+                        quota=0.000002,
                         win_criteria=mode_maxwins["base"],
                         conditions=wincap_cond,
                     ),
-                    Distribution(criteria="freegame", quota=0.10, conditions=freegame_cond),
-                    Distribution(criteria="0",        quota=0.40, win_criteria=0.0, conditions=zerowin_cond),
+                    # Freegame trigger frequency, also recalibrated: the same
+                    # freegame_cond is shared with bonus mode (where a real
+                    # 60k-sim run showed it averaging ~100-110x per triggered
+                    # session -- consistent with a bought feature costing
+                    # 100x). At quota=0.10 (1-in-10 base spins), that session
+                    # value alone contributed roughly 960-1000% RTP on its
+                    # own. Dropped to 0.005 (1-in-200) so the feature still
+                    # drives a meaningful, but no longer dominant, share of
+                    # base-mode RTP; the freed-up quota moves to "0" below.
+                    Distribution(criteria="freegame", quota=0.005, conditions=freegame_cond),
+                    Distribution(criteria="0",        quota=0.495998, win_criteria=0.0, conditions=zerowin_cond),
                     Distribution(criteria="basegame", quota=0.499, conditions=basegame_cond),
                 ],
             ),
@@ -225,11 +251,11 @@ class GameConfig(Config):
                 distributions=[
                     Distribution(
                         criteria="wincap",
-                        quota=0.001,
+                        quota=0.000192,
                         win_criteria=mode_maxwins["bonus"],
                         conditions=wincap_cond,
                     ),
-                    Distribution(criteria="freegame", quota=0.999, conditions=freegame_cond),
+                    Distribution(criteria="freegame", quota=0.999808, conditions=freegame_cond),
                 ],
             ),
         ]

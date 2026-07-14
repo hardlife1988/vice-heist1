@@ -6,11 +6,13 @@
   interface Props {
     reveal: RevealEvent | null;
     winInfo: WinInfoEvent | null;
+    offsetX?: number;
+    offsetY?: number;
   }
 
-  let { reveal, winInfo }: Props = $props();
+  let { reveal, winInfo, offsetX = 0, offsetY = 0 }: Props = $props();
 
-  const TILE_SIZE = 90;
+  const TILE_SIZE = 100;
   const GAP = 8;
 
   const isHighlighted = (reel: number, row: number) =>
@@ -25,8 +27,8 @@
       {@const cell = reveal.board[reel][row]}
       <SymbolTile
         symbol={cell.name as any}
-        x={reel * (TILE_SIZE + GAP)}
-        y={row * (TILE_SIZE + GAP)}
+        x={offsetX + reel * (TILE_SIZE + GAP)}
+        y={offsetY + row * (TILE_SIZE + GAP)}
         size={TILE_SIZE}
         highlighted={isHighlighted(reel, row)}
       />
