@@ -14,11 +14,11 @@ export const SYMBOL_IDS: SymbolId[] = ["W", "SC", "BV", "H1", "H2", "H3", "H4", 
 export const symbolAssetKey = (symbol: SymbolId): string => `symbol_${symbol}`;
 
 export const ASSETS: Assets = {
-  background: { type: "sprite", src: "/assets/background.png", preload: true },
+  background: { type: "sprite", src: "/assets/background.jpg", preload: true },
   ...Object.fromEntries(
     SYMBOL_IDS.map((id) => [
       symbolAssetKey(id),
-      { type: "sprite", src: `/assets/symbols/${id}.png`, preload: true },
+      { type: "sprite", src: `/assets/symbols/${id}.jpg`, preload: true },
     ]),
   ),
 };
