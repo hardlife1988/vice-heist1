@@ -24,7 +24,7 @@ class GameConfig(Config):
         self.game_id       = "vice_heist"
         self.provider_number = 0
         self.working_name  = "Vice Heist"
-        self.wincap        = 10000.0
+        self.wincap        = 900.0
         self.win_type      = "lines"
         self.rtp           = 0.96
         self.construct_paths()
@@ -157,7 +157,7 @@ class GameConfig(Config):
             "scatter_triggers": {3: 50, 4: 20, 5: 5},
             "mult_values": {
                 self.basegame_type: {1: 1},
-                self.freegame_type: {2: 60, 3: 80, 4: 50, 5: 20, 10: 15, 20: 10, 50: 5},
+                self.freegame_type: {2: 95, 3: 100, 4: 32, 5: 5, 10: 1, 20: 1, 50: 1},
             },
             "force_wincap": False,
             "force_freegame": True,
@@ -197,19 +197,20 @@ class GameConfig(Config):
         # landing exactly on the forced max-win (`win_criteria`), and its
         # contribution to a mode's RTP is simply quota * wincap / cost --
         # fixed by that arithmetic, not something the optimizer can reweight
-        # away. At the previous quota=0.001 (1-in-1000) with wincap=10000x,
-        # that's a flat 1000% RTP contribution from the max win ALONE in
-        # base mode (cost=1) -- confirmed directly from a real 60k-sim run,
-        # not a sampling artifact: every one of the 60 forced wincap rows in
-        # the published lookup table carried full weight, together
-        # accounting for half of the entire base-mode payout sum. Rebalanced
-        # both modes so the max win stays a rare, small slice of RTP (roughly
-        # 2%) like a real jackpot event, instead of dominating it:
-        #   base:  quota 0.001 -> 0.000002  (contributes ~0.0192, ~2% of 0.96 RTP)
-        #   bonus: quota 0.001 -> 0.000192  (contributes ~0.0192, ~2% of 0.96 RTP; cost=100 already
-        #                                    dampens this bucket 100x vs base, so it needed far less cutting)
-        # The quota freed up from each mode's wincap bucket is folded back
-        # into that mode's other distributions so quotas still sum to 1.0.
+        # away. base mode's wincap quota (0.000002) keeps the max win a rare,
+        # small slice of RTP (~2%), like a real jackpot event.
+        #
+        # bonus mode's wincap (900x, down from an original 10000x) and its
+        # quota (0.0022, up from 0.000192) plus the tightened freegame
+        # multiplier weights above were rebalanced together to fix a real
+        # RGS volatility-limit failure: the broad band of large-but-under-cap
+        # wins from the free-spin multiplier feature -- not a single max-win
+        # spike -- was driving CVaR over Stake's 800 (3-star) limit. Verified
+        # at full 100k-round production scale: CVaR 596.84 vs. 800, a
+        # 203-point margin, with both base and bonus RTP still on the 0.96
+        # target.
+        # The quota freed up/added to each mode's wincap bucket is offset in
+        # that mode's other distributions so quotas still sum to 1.0.
         self.bet_modes = [
             BetMode(
                 name="base",
@@ -251,11 +252,11 @@ class GameConfig(Config):
                 distributions=[
                     Distribution(
                         criteria="wincap",
-                        quota=0.000192,
+                        quota=0.0022,
                         win_criteria=mode_maxwins["bonus"],
                         conditions=wincap_cond,
                     ),
-                    Distribution(criteria="freegame", quota=0.999808, conditions=freegame_cond),
+                    Distribution(criteria="freegame", quota=0.9978, conditions=freegame_cond),
                 ],
             ),
         ]

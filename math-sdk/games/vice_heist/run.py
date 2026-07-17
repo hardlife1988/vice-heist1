@@ -32,7 +32,7 @@ from src.write_data.write_configs import generate_configs
 if __name__ == "__main__":
 
     # ── Simulation parameters ───────────────────────────────────────────
-    num_threads   = 4         # increase on more powerful machines
+    num_threads   = 2         # reduced from 4 -- sandbox OOM-killed a worker at 4 threads on 100k-round production runs
     rust_threads  = 20
     batching_size = 5000
     compression   = True      # set False for readable JSON output during debug
