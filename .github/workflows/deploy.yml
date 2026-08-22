@@ -33,16 +33,23 @@ jobs:
           node-version: 20
           cache: pnpm
 
-      - name: Install dependencies
+      - name: Install dependencies for vice-heist-pixi only
+        working-directory: ./artifacts/vice-heist-pixi
         run: pnpm install
 
-      - name: Build
+      - name: Build vice-heist-pixi
+        working-directory: ./artifacts/vice-heist-pixi
         run: pnpm run build
 
-      - name: Copy build to root
+      - name: Prepare deploy directory
         run: |
           mkdir -p /tmp/deploy
           cp -r artifacts/vice-heist-pixi/build/* /tmp/deploy/
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: /tmp/deploy
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
