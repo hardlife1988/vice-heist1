@@ -1,29 +1,40 @@
 /**
  * Vice Heist — spin state machine.
  *
- * Minimal xstate model of the client spin cycle: idle -> requesting (the
+ * xstate model of the client spin cycle: idle -> requesting (the
  * RGS `play/` call) -> revealing (board animates in) -> presentingWin (win
- * lines / freegame transition shown) -> idle. This does not yet call the
- * real RGS — `requestSpin`'s implementation is a stub that resolves with a
- * fixture book (see mockBook.ts) so the machine and renderer can be
- * exercised end-to-end before RGS wiring lands.
+ * lines / freegame transition shown) -> closingRound (/wallet/end-round) -> idle.
+ *
+ * Respects active/in-progress rounds from the RGS and ensures /wallet/end-round
+ * is called to close every round, preventing mid-spin stalls.
  */
 import { assign, fromPromise, setup } from "xstate";
 import type { Book } from "./bookEvents";
-import { mockBook } from "./mockBook";
+import type { PlayResponse } from "./rgsClient";
+import { rgsClient } from "./rgsClient";
 
 export interface GameMachineContext {
   book: Book | null;
   error: string | null;
+  balance: number;
 }
 
-export type GameMachineEvent = { type: "SPIN" };
+export type GameMachineEvent = { type: "SPIN" } | { type: "ACKNOWLEDGE_ERROR" };
 
-const requestSpin = fromPromise<Book>(async () => {
-  // TODO: replace with the real RGS `play/` call once Vice Heist is
-  // uploaded via math-sdk's publish files (see math/NOTICE.md).
-  await new Promise((resolve) => setTimeout(resolve, 400));
-  return mockBook;
+const requestSpin = fromPromise<PlayResponse>(async () => {
+  try {
+    return await rgsClient.play(1000000, "BASE");
+  } catch (error) {
+    throw new Error(`Failed to request spin: ${error}`);
+  }
+});
+
+const endRound = fromPromise<void>(async () => {
+  try {
+    await rgsClient.endRound();
+  } catch (error) {
+    throw new Error(`Failed to end round: ${error}`);
+  }
 });
 
 export const gameMachine = setup({
@@ -31,11 +42,11 @@ export const gameMachine = setup({
     context: {} as GameMachineContext,
     events: {} as GameMachineEvent,
   },
-  actors: { requestSpin },
+  actors: { requestSpin, endRound },
 }).createMachine({
   id: "viceHeistSpin",
   initial: "idle",
-  context: { book: null, error: null },
+  context: { book: null, error: null, balance: 0 },
   states: {
     idle: {
       on: { SPIN: "requesting" },
@@ -45,10 +56,14 @@ export const gameMachine = setup({
         src: "requestSpin",
         onDone: {
           target: "revealing",
-          actions: assign({ book: ({ event }) => event.output, error: null }),
+          actions: assign({
+            book: ({ event }) => event.output.round.book || null,
+            balance: ({ event }) => event.output.balance.amount,
+            error: null,
+          }),
         },
         onError: {
-          target: "idle",
+          target: "error",
           actions: assign({ error: ({ event }) => String(event.error) }),
         },
       },
@@ -57,7 +72,23 @@ export const gameMachine = setup({
       after: { 900: "presentingWin" },
     },
     presentingWin: {
-      after: { 1500: "idle" },
+      after: { 1500: "closingRound" },
+    },
+    closingRound: {
+      invoke: {
+        src: "endRound",
+        onDone: {
+          target: "idle",
+          actions: assign({ error: null }),
+        },
+        onError: {
+          target: "error",
+          actions: assign({ error: ({ event }) => String(event.error) }),
+        },
+      },
+    },
+    error: {
+      on: { ACKNOWLEDGE_ERROR: "idle" },
     },
   },
 });
