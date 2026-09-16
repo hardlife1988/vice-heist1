@@ -1,13 +1,6 @@
 /**
- * Vice Heist — types for the RGS `play/` response ("book" + events).
- *
- * Modeled on math-sdk/docs/math_docs/gamestate_section/events_info.md and
- * this game's actual event sources: the SDK's built-in Lines engine
- * (Lines.emit_linewin_events, called from game_executables.py) plus the
- * generic freespin/reveal events every math-sdk game emits from
- * src/events/events.py. Vice Heist does not define any custom
- * game_events.py overrides — it relies entirely on these SDK-provided
- * event types.
+ * Types for the RGS play response (book + events).
+ * Event shapes match the SDK Lines engine + generic freespin/reveal events.
  */
 
 export interface BookEvent {
@@ -16,7 +9,6 @@ export interface BookEvent {
   [field: string]: unknown;
 }
 
-/** Emitted once per spin when the board is (re)drawn. */
 export interface RevealEvent extends BookEvent {
   type: "reveal";
   board: SymbolId2D;
@@ -25,7 +17,6 @@ export interface RevealEvent extends BookEvent {
   anticipation?: number[];
 }
 
-/** Emitted by the SDK's Lines engine after line-win evaluation. */
 export interface WinInfoEvent extends BookEvent {
   type: "winInfo";
   totalWin: number;
@@ -37,31 +28,22 @@ export interface WinInfoEvent extends BookEvent {
   }>;
 }
 
-/** Emitted when free spins are triggered from the basegame. */
 export interface FreeSpinTriggerEvent extends BookEvent {
   type: "freeSpinTrigger";
   totalFs: number;
   scatterCount: number;
 }
 
-/** Emitted at the start of every freegame spin. */
 export interface UpdateFreeSpinEvent extends BookEvent {
   type: "updateFreeSpin";
   amount: number;
   total: number;
 }
 
-/** Emitted when a freegame's extra-spin retrigger condition is met. */
 export interface FreeSpinRetriggerEvent extends BookEvent {
   type: "retriggerFreeSpin";
   addedSpins: number;
   scatterCount: number;
-}
-
-/** Emitted when a Wild is assigned its random multiplier (freegame only). */
-export interface SetWinEvent extends BookEvent {
-  type: "setWin";
-  amount: number;
 }
 
 export type SymbolId2D = Array<Array<{ name: string; multiplier?: number }>>;
@@ -75,8 +57,36 @@ export interface Book {
   freeGameWins: number;
 }
 
-export interface PlayResponse {
-  round: { mode: "base" | "bonus"; state: "COMPLETE" | "IN_PROGRESS" };
-  book: Book;
-  balance: { amount: number; currency: string };
+export function extractBook(payload: unknown): Book | null {
+  if (!payload || typeof payload !== "object") return null;
+  const root = payload as Record<string, unknown>;
+  const round = (root.round ?? root) as Record<string, unknown>;
+  const candidate = (round.book ?? round) as Record<string, unknown>;
+  const events = (candidate.events ?? round.events) as unknown;
+  if (!Array.isArray(events) || events.length === 0) return null;
+  return {
+    id: Number(candidate.id ?? round.roundID ?? 0),
+    payoutMultiplier: Number(candidate.payoutMultiplier ?? round.payoutMultiplier ?? 0),
+    events: events as BookEvent[],
+    criteria: String(candidate.criteria ?? ""),
+    baseGameWins: Number(candidate.baseGameWins ?? 0),
+    freeGameWins: Number(candidate.freeGameWins ?? 0),
+  };
+}
+
+export function lastReveal(book: Book | null): RevealEvent | null {
+  if (!book) return null;
+  const reveals = book.events.filter((e) => e.type === "reveal") as RevealEvent[];
+  return reveals.at(-1) ?? null;
+}
+
+export function allReveals(book: Book | null): RevealEvent[] {
+  if (!book) return [];
+  return book.events.filter((e) => e.type === "reveal") as RevealEvent[];
+}
+
+export function winInfo(book: Book | null): WinInfoEvent | null {
+  if (!book) return null;
+  const wins = book.events.filter((e) => e.type === "winInfo") as WinInfoEvent[];
+  return wins.at(-1) ?? null;
 }

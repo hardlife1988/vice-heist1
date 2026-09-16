@@ -157,7 +157,7 @@ class GameConfig(Config):
             "scatter_triggers": {3: 50, 4: 20, 5: 5},
             "mult_values": {
                 self.basegame_type: {1: 1},
-                self.freegame_type: {2: 95, 3: 100, 4: 32, 5: 5, 10: 1, 20: 1, 50: 1},
+                self.freegame_type: {2: 140, 3: 90, 4: 25, 5: 10, 10: 4},
             },
             "force_wincap": False,
             "force_freegame": True,

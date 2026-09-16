@@ -1,15 +1,10 @@
-/**
- * A hand-authored book fixture in the same shape the RGS will return,
- * used only to exercise the renderer/state machine before real RGS
- * wiring lands. Board layout and win are illustrative, not derived from
- * an actual math-sdk simulation.
- */
 import type { Book } from "./bookEvents";
 
+/** Local fixture used only when sessionID/rgs_url are missing (dev preview). */
 export const mockBook: Book = {
   id: 1,
-  payoutMultiplier: 4.8,
-  criteria: "basegame_win",
+  payoutMultiplier: 480,
+  criteria: "basegame",
   baseGameWins: 4.8,
   freeGameWins: 0,
   events: [
@@ -17,8 +12,6 @@ export const mockBook: Book = {
       index: 0,
       type: "reveal",
       gameType: "basegame",
-      // payline row 0 across reels 0-2 forms an H3 3-of-a-kind, matching
-      // the winInfo event below (reel/row indices are 0-based, row 0 = top).
       board: [
         [{ name: "H3" }, { name: "A" }, { name: "K" }],
         [{ name: "H3" }, { name: "W" }, { name: "Q" }],

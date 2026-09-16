@@ -7,18 +7,16 @@ H1 Diamond, H2 Gold Bar, H3 Cash Stack, H4 Heist Bag, H5 Vault, A, K, Q, J.
 
 Basegame:
 Scatter symbols appear on all reels; 3+ Scatters trigger the Freegame
-(10/15/20 spins for 3/4/5+ scatters).
+(10/15/20 spins for 3/4/5+ scatters). RTP target 96%. Max win 900x.
 
 Freegame:
 A separate reelstrip (FR0) is used for the freegame. Wilds gain a random
-multiplier attribute (2x-50x, weighted) any time they land during the
+multiplier attribute (2x-10x, weighted) any time they land during the
 freegame. 3+ Scatters retrigger extra spins (5/8/12+ depending on count).
+FRWCAP is a wild-heavy strip used only on the forced wincap path.
 
 Win evaluation:
 Line wins are evaluated with the SDK's Lines engine (win_type = "lines"),
 20 fixed paylines, wild substitution on all non-scatter symbols.
 
-Notes:
-Bet modes: "base" (standard spin, includes a small wincap/freegame/zerowin/
-basegame distribution split) and "bonus" (buy-bonus, cost 100x, guarantees
-a freegame or wincap outcome).
+Bet modes: "base" (1x) and "bonus" (buy-bonus, cost 100x).

@@ -1,110 +1,106 @@
 /**
- * Vice Heist — RGS Client
- *
- * Handles communication with the Stake Engine RGS endpoints.
- * Implements wallet authentication, balance, play, and end-round flows.
- * Respects bet levels and minStep constraints from authenticate response.
+ * Stake Engine RGS client.
+ * Endpoints and money format follow math-sdk/docs/rgs_docs/RGS.md.
  */
 
 export interface AuthenticateResponse {
-  balance: {
-    amount: number;
-    currency: string;
-  };
+  balance: { amount: number; currency: string };
   config: {
     minBet: number;
     maxBet: number;
     stepBet: number;
-    defaultBetLevel: number;
+    defaultBetLevel?: number;
     betLevels: number[];
-    jurisdiction: Record<string, unknown>;
+    jurisdiction?: Record<string, unknown>;
   };
   round?: {
-    mode: "BASE" | "BONUS";
-    state: "COMPLETE" | "IN_PROGRESS";
+    mode?: string;
+    state?: "COMPLETE" | "IN_PROGRESS";
+    payoutMultiplier?: number;
+    book?: { id?: number; payoutMultiplier?: number; events?: Array<Record<string, unknown>> };
+    events?: Array<Record<string, unknown>>;
   };
 }
 
 export interface PlayResponse {
-  balance: {
-    amount: number;
-    currency: string;
-  };
-  round: {
-    mode: "BASE" | "BONUS";
-    state: "COMPLETE" | "IN_PROGRESS";
-    book?: {
-      id: number;
-      payoutMultiplier: number;
-      events: Array<Record<string, unknown>>;
-      criteria: string;
-      baseGameWins: number;
-      freeGameWins: number;
-    };
+  balance: { amount: number; currency: string };
+  round: Record<string, unknown> & {
+    mode?: string;
+    state?: "COMPLETE" | "IN_PROGRESS";
+    payoutMultiplier?: number;
+    book?: { id?: number; payoutMultiplier?: number; events?: Array<Record<string, unknown>> };
+    events?: Array<Record<string, unknown>>;
   };
 }
 
 export interface BalanceResponse {
-  balance: {
-    amount: number;
-    currency: string;
-  };
+  balance: { amount: number; currency: string };
 }
 
-export interface EndRoundResponse {
-  balance: {
-    amount: number;
-    currency: string;
-  };
+function param(key: string): string {
+  if (typeof window === "undefined") return "";
+  return new URLSearchParams(window.location.search).get(key) || "";
+}
+
+function rgsOrigin(): string {
+  const raw = param("rgs_url").trim();
+  if (!raw) return "";
+  if (/^https?:\/\//i.test(raw)) return raw.replace(/\/$/, "");
+  return `https://${raw.replace(/\/$/, "")}`;
 }
 
 class RGSClient {
-  private rgsUrl: string;
-  private sessionID: string;
-
-  constructor() {
-    this.rgsUrl = this.getQueryParam("rgs_url") || "";
-    this.sessionID = this.getQueryParam("sessionID") || "";
-
-    if (!this.rgsUrl || !this.sessionID) {
-      console.error("Missing required RGS parameters: rgs_url and sessionID");
-    }
+  get sessionID(): string {
+    return param("sessionID") || param("sessionId") || "";
   }
 
-  private getQueryParam(key: string): string {
-    if (typeof window === "undefined") return "";
-    const params = new URLSearchParams(window.location.search);
-    return params.get(key) || "";
+  get hasSession(): boolean {
+    return Boolean(this.sessionID && param("rgs_url"));
+  }
+
+  get language(): string {
+    return param("lang") || param("language") || "en";
+  }
+
+  get currency(): string {
+    return param("currency") || "USD";
+  }
+
+  get device(): string {
+    return param("device") || "desktop";
   }
 
   private async request<T>(endpoint: string, body: Record<string, unknown>): Promise<T> {
-    const url = `https://${this.rgsUrl}${endpoint}`;
-
+    const origin = rgsOrigin();
+    if (!origin) throw new Error("Missing rgs_url — launch from Stake Engine Developer → Start game session.");
+    const response = await fetch(`${origin}${endpoint}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const text = await response.text();
+    let data: unknown = null;
     try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(`RGS Error ${response.status}: ${errorData}`);
-      }
-
-      return (await response.json()) as T;
-    } catch (error) {
-      console.error(`RGS request failed for ${endpoint}:`, error);
-      throw error;
+      data = text ? JSON.parse(text) : null;
+    } catch {
+      throw new Error(`RGS ${endpoint} returned non-JSON (${response.status})`);
     }
+    if (!response.ok) {
+      const msg =
+        (data as { status?: { statusMessage?: string }; message?: string; error?: string })?.status
+          ?.statusMessage ||
+        (data as { message?: string }).message ||
+        (data as { error?: string }).error ||
+        text.slice(0, 180);
+      throw new Error(`RGS ${endpoint} ${response.status}: ${msg}`);
+    }
+    return data as T;
   }
 
   async authenticate(): Promise<AuthenticateResponse> {
     return this.request<AuthenticateResponse>("/wallet/authenticate", {
       sessionID: this.sessionID,
-      language: this.getQueryParam("language") || "en",
+      language: this.language,
     });
   }
 
@@ -117,14 +113,14 @@ class RGSClient {
   async play(amount: number, mode: "BASE" | "BONUS" = "BASE"): Promise<PlayResponse> {
     return this.request<PlayResponse>("/wallet/play", {
       sessionID: this.sessionID,
-      amount: amount,
-      mode: mode,
-      currency: this.getQueryParam("currency"),
+      amount,
+      mode,
+      currency: this.currency,
     });
   }
 
-  async endRound(): Promise<EndRoundResponse> {
-    return this.request<EndRoundResponse>("/wallet/end-round", {
+  async endRound(): Promise<BalanceResponse> {
+    return this.request<BalanceResponse>("/wallet/end-round", {
       sessionID: this.sessionID,
     });
   }

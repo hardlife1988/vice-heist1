@@ -5,7 +5,10 @@ import { vitePreprocess } from "@sveltejs/vite-plugin-svelte";
 const config = {
   preprocess: vitePreprocess(),
   kit: {
-    // Stake Engine's RGS-driven games are static single-page bundles.
+    // Relative URLs are required: Stake Engine serves the game from
+    // https://{team}.live.stake-engine.com/{game}/v{version}/
+    // Absolute `/_app/...` or `/assets/...` 404 on that host.
+    paths: { relative: true },
     adapter: adapter({
       pages: "build",
       assets: "build",
