@@ -3,6 +3,9 @@
 Games are served from `https://{team}.live.stake-engine.com/{game}/v{version}/`.
 This frontend uses **relative** asset URLs. Do not restore `base: "/vice-heist1/"`.
 
+Upload **only** SDK outputs. Do not upload `math/library/publish_files/` at the
+repo root — that folder is the old homemade engine (wrong file format, ~35% RTP).
+
 ## 1. Build the frontend
 
 ```bash
@@ -32,10 +35,14 @@ cd games/vice_heist
 python run.py
 ```
 
-Default is 100,000 sims per mode (required range is 100k–1M). Faster smoke run:
+`run.py` now matches the official SDK sample. It used to crash on a missing
+`src.state.compression` module before any books were written.
+
+Default is 100,000 sims per mode (required range is 100k–1M). Faster smoke run
+(skip Rust optimizer + format checks):
 
 ```bash
-VICE_HEIST_NUM_SIMS=2000 python run.py
+VICE_HEIST_NUM_SIMS=2000 VICE_HEIST_SKIP_OPT=1 VICE_HEIST_SKIP_CHECKS=1 python run.py
 ```
 
 Upload these five files from `math-sdk/games/vice_heist/library/publish_files/`:

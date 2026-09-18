@@ -14,6 +14,9 @@ class OptimizationSetup:
         self.game_config = game_config
         wincaps = {bm.get_name(): bm.get_wincap() for bm in game_config.bet_modes}
 
+        # win_range values are payout multipliers. Max win is 900x, so any
+        # fence above 900 is dead code (leftover from the old 10,000x cap)
+        # and the optimizer never scaled the actual large-win band.
         self.game_config.opt_params = {
             "base": {
                 "conditions": {
@@ -28,10 +31,10 @@ class OptimizationSetup:
                 },
                 "scaling": ConstructScaling(
                     [
-                        {"criteria": "basegame", "scale_factor": 1.2, "win_range": (1, 2),   "probability": 1.0},
-                        {"criteria": "basegame", "scale_factor": 1.5, "win_range": (10, 20),  "probability": 1.0},
-                        {"criteria": "freegame",  "scale_factor": 0.8, "win_range": (1000, 2000), "probability": 1.0},
-                        {"criteria": "freegame",  "scale_factor": 1.2, "win_range": (5000, 8000), "probability": 1.0},
+                        {"criteria": "basegame", "scale_factor": 1.2, "win_range": (1, 2), "probability": 1.0},
+                        {"criteria": "basegame", "scale_factor": 1.5, "win_range": (10, 20), "probability": 1.0},
+                        {"criteria": "freegame", "scale_factor": 0.8, "win_range": (80, 200), "probability": 1.0},
+                        {"criteria": "freegame", "scale_factor": 1.2, "win_range": (400, 800), "probability": 1.0},
                     ]
                 ).return_dict(),
                 "parameters": ConstructParameters(
@@ -60,9 +63,9 @@ class OptimizationSetup:
                 },
                 "scaling": ConstructScaling(
                     [
-                        {"criteria": "freegame", "scale_factor": 1.2, "win_range": (1, 20),      "probability": 1.0},
-                        {"criteria": "freegame", "scale_factor": 0.8, "win_range": (20, 50),     "probability": 1.0},
-                        {"criteria": "freegame", "scale_factor": 1.2, "win_range": (1000, 2000), "probability": 1.0},
+                        {"criteria": "freegame", "scale_factor": 1.2, "win_range": (1, 20), "probability": 1.0},
+                        {"criteria": "freegame", "scale_factor": 0.8, "win_range": (20, 50), "probability": 1.0},
+                        {"criteria": "freegame", "scale_factor": 1.2, "win_range": (400, 800), "probability": 1.0},
                     ]
                 ).return_dict(),
                 "parameters": ConstructParameters(

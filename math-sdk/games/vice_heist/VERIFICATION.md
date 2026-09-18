@@ -1,5 +1,35 @@
 # Vice Heist math — verification log
 
+## 2026-09-18: why `python run.py` was not producing Stake files
+
+`games/vice_heist/run.py` could not finish. Three hard failures vs the official
+SDK sample (`games/0_0_lines/run.py`):
+
+1. **Import crash.** It imported `src.state.compression.compress_values`.
+   That module does not exist in this SDK. `python run.py` died immediately
+   with `ModuleNotFoundError`.
+2. **Wrong optimizer call.** It called
+   `OptimizationExecution().run_all_modes(config, rust_threads)`.
+   The real signature is `(config, modes_to_run, rust_threads)`, so even after
+   a fake compression stub this would TypeError.
+3. **Never wrote configs.** Official runner calls `OptimizationSetup(config)`
+   and `generate_configs(gamestate)`. Without those, `index.json` and
+   `lookUpTable_*_0.csv` are not produced. There is still no
+   `library/publish_files/` in git — math was never successfully regenerated
+   after the 2026-09-16 strip rewrite.
+
+Do **not** upload `math/library/publish_files/` from the repo root. Those are
+homemade JSON (symbols WILD/BOSS/FEMME, RTP ~35.5%). Stake Engine only
+accepts the SDK outputs listed in `STAKE_UPLOAD.md`.
+
+Optimizer scaling ranges of (1000, 2000) and (5000, 8000) were leftover from
+the old 10,000x cap. Max win is 900x, so those fences never fired. They now
+sit inside 80–800x.
+
+Smoke-tested after the runner fix: GameConfig + OptimizationSetup load,
+30 forced-non-zero basegame spins all pay, one forced freegame round emits
+`reveal` / `freeSpinTrigger` / `updateFreeSpin` / `winInfo` and terminates.
+
 ## 2026-09-16: reel strips + multiplier rebalance for Stake review
 
 BR0 scatter was still ~11.5% of cells (dense enough that `draw_board` spent most of its time redrawing to avoid a natural 3-scatter). New strips:
