@@ -1,0 +1,107 @@
+name: Vice Heist math generation
+
+# Driven by workflow_dispatch so a run can be triggered on demand with a chosen
+# scale. A small run (5k) is a design smoke test; a publish run is 100k per mode.
+#
+# Runs entirely on a GitHub-hosted ubuntu-latest runner (4 vCPU / 16 GB), which
+# is what this generation actually needs -- the agent sandbox has 2 cores and
+# ~1 GB and cannot hold a 100k-round bonus book.
+#
+# NOTE: games/vice_heist/optimize_rtp.py is pure Python ("No Rust required") --
+# the vendored optimization_program/ Rust crate is NOT used by this game, so no
+# Rust toolchain step is needed here.
+
+on:
+  workflow_dispatch:
+    inputs:
+      num_sims:
+        description: "Simulations per mode (5000 = smoke test, 100000 = publish scale)"
+        required: true
+        default: "5000"
+      rtp:
+        description: "Target RTP"
+        required: true
+        default: "0.96"
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy zstandard scipy pandas toml xlsxwriter matplotlib
+
+      - name: Report configured cap before running
+        working-directory: math-sdk
+        env:
+          PYTHONPATH: ${{ github.workspace }}/math-sdk
+        run: |
+          python3 - <<'PY'
+          import sys
+          sys.path.insert(0, "games/vice_heist")
+          from game_config import GameConfig
+          c = GameConfig()
+          print("wincap     :", c.wincap)
+          print("rtp target :", c.rtp)
+          for bm in c.bet_modes:
+              qs = [(d.get_criteria(), d.get_quota()) for d in bm.get_distributions()]
+              total = sum(q for _, q in qs)
+              print(f"[{bm.get_name()}] cost={bm.get_cost()} quota_sum={total!r}")
+              for crit, q in qs:
+                  print(f"    {crit:<10} {q!r}")
+              assert abs(total - 1.0) < 1e-9, f"{bm.get_name()} quotas do not sum to 1.0"
+          PY
+
+      - name: Generate books and optimise lookup tables
+        working-directory: math-sdk
+        env:
+          VICE_HEIST_NUM_SIMS: ${{ inputs.num_sims }}
+          VICE_HEIST_RTP: ${{ inputs.rtp }}
+          PYTHONPATH: ${{ github.workspace }}/math-sdk
+        run: python3 games/vice_heist/run.py
+
+      - name: Summarise publish files
+        if: always()
+        working-directory: math-sdk/games/vice_heist/library
+        run: |
+          echo "--- publish_files ---"
+          ls -la publish_files/ || echo "publish_files missing"
+          echo "--- lookup table RTP / max payout per mode ---"
+          for f in publish_files/lookUpTable_*_0.csv; do
+            [ -e "$f" ] || continue
+            python3 - "$f" <<'PY'
+          import csv, sys
+          path = sys.argv[1]
+          wsum = psum = 0.0
+          mx = 0.0
+          with open(path, newline="") as fh:
+              for row in csv.reader(fh):
+                  if not row:
+                      continue
+                  w, pay = float(row[1]), float(row[2]) / 100.0
+                  if w <= 0:
+                      continue
+                  wsum += w
+                  psum += w * pay
+                  mx = max(mx, pay)
+          print(f"{path}: rows_rtp={psum/wsum if wsum else 0:.6f} max_payout={mx:.2f}x")
+          PY
+          done
+
+      - name: Upload publish files
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vice-heist-math-${{ inputs.num_sims }}
+          path: math-sdk/games/vice_heist/library/publish_files/
+          if-no-files-found: error
+          retention-days: 30
