@@ -92,11 +92,13 @@ jobs:
           git config user.name "vice-heist-ci"
           git config user.email "ci@users.noreply.github.com"
           cp library/VERIFY.json "$RUNNER_TEMP/VERIFY.json"
+          [ -f library/cap_targets.json ] && cp library/cap_targets.json "$RUNNER_TEMP/cap_targets.json"
           git stash --include-untracked || true
           git pull --rebase || true
           mkdir -p library
           cp "$RUNNER_TEMP/VERIFY.json" library/VERIFY.json
-          git add -f library/VERIFY.json
+          [ -f "$RUNNER_TEMP/cap_targets.json" ] && cp "$RUNNER_TEMP/cap_targets.json" library/cap_targets.json
+          git add -f library/VERIFY.json library/cap_targets.json || git add -f library/VERIFY.json
           git commit -m "ci: gate report, run ${{ github.run_id }}, num_sims=${{ inputs.num_sims }}" \
             || { echo "no change to commit"; exit 0; }
           git push
@@ -109,5 +111,6 @@ jobs:
           path: |
             math-sdk/games/vice_heist/library/publish_files/
             math-sdk/games/vice_heist/library/VERIFY.json
+            math-sdk/games/vice_heist/library/cap_targets.json
           if-no-files-found: error
           retention-days: 30
