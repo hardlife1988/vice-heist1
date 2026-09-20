@@ -25,6 +25,16 @@ class GameConfig(Config):
         self.provider_number = 0
         self.working_name  = "Vice Heist"
         self.wincap        = 10000.0
+        # Live probability of drawing the forced max-win, per mode. This is the
+        # real frequency the PUBLISHED lookup tables must realise, and
+        # optimize_rtp.py pins it exactly.
+        #
+        # It is deliberately separate from the wincap distribution quota below:
+        #   quota  -> how many distinct max-win BOOKS get simulated (variety)
+        #   this   -> how OFTEN a max-win is actually drawn (frequency)
+        # Conflating the two is what let the RTP tilt crush the realised cap
+        # rate to ~1 in 10,000,000 when it was configured as 1 in 200,000.
+        self.wincap_probability = {"base": 0.000005, "bonus": 0.00001}
         self.win_type      = "lines"
         self.rtp           = 0.96
         self.construct_paths()
@@ -203,24 +213,36 @@ class GameConfig(Config):
 
         mode_maxwins = {"base": self.wincap, "bonus": self.wincap}
 
-        # Wincap quota calibration: the quota IS the live probability of
-        # landing exactly on the forced max-win (`win_criteria`), and its
-        # contribution to a mode's RTP is simply quota * wincap / cost --
-        # fixed by that arithmetic, not something the optimizer can reweight
-        # away. base mode's wincap quota (0.000002) keeps the max win a rare,
-        # small slice of RTP (~2%), like a real jackpot event.
+        # Wincap quota calibration. NOTE: an earlier version of this comment
+        # claimed the quota "IS the live probability" of the forced max-win and
+        # was "not something the optimizer can reweight away". That was FALSE
+        # for this pipeline and was measured to be false: the old global
+        # exponential RTP tilt multiplied every row by exp(lam * payout) with
+        # lam negative, which annihilated the 10,000x row and left it floored at
+        # the minimum integer weight -- a configured 1-in-200,000 shipped as
+        # ~1-in-10,000,000.
         #
-        # bonus mode's wincap (900x, down from an original 10000x) and its
-        # quota (0.0022, up from 0.000192) plus the tightened freegame
-        # multiplier weights above were rebalanced together to fix a real
-        # RGS volatility-limit failure: the broad band of large-but-under-cap
-        # wins from the free-spin multiplier feature -- not a single max-win
-        # spike -- was driving CVaR over Stake's 800 (3-star) limit. Verified
-        # at full 100k-round production scale: CVaR 596.84 vs. 800, a
-        # 203-point margin, with both base and bonus RTP still on the 0.96
-        # target.
-        # The quota freed up/added to each mode's wincap bucket is offset in
-        # that mode's other distributions so quotas still sum to 1.0.
+        # The quota is now purely a SAMPLING control: it decides how many
+        # distinct max-win books exist, giving the top award visual variety.
+        # The published frequency lives in self.wincap_probability above and is
+        # pinned by optimize_rtp.py, whose contribution to RTP is exactly
+        # p_cap * wincap / cost. Quotas here are raised well above the target
+        # frequency on purpose so there are many cap books to draw from.
+        #
+        # Volatility control is unchanged in spirit and still matters: it is the
+        # broad band of large-but-under-cap wins from the free-spin multiplier
+        # feature -- not the single max-win spike -- that drives CVaR toward
+        # Stake's 800 (3-star) limit. That is why the heavy multiplier table
+        # lives only on wincap_cond (the force-capped path) and is NOT shared
+        # with the regular freegame path.
+        #
+        # Historical reference point, recorded when this game was capped at
+        # 900x: CVaR 596.84 against the 800 limit at 100k-round scale. That
+        # figure describes the OLD 900x configuration and is not a measurement
+        # of the current 10,000x build -- see library/VERIFY.json for the
+        # current numbers.
+        #
+        # Quotas in each mode still sum to 1.0.
         self.bet_modes = [
             BetMode(
                 name="base",
@@ -233,7 +255,7 @@ class GameConfig(Config):
                 distributions=[
                     Distribution(
                         criteria="wincap",
-                        quota=0.000005,
+                        quota=0.002,
                         win_criteria=mode_maxwins["base"],
                         conditions=wincap_cond,
                     ),
@@ -247,7 +269,7 @@ class GameConfig(Config):
                     # drives a meaningful, but no longer dominant, share of
                     # base-mode RTP; the freed-up quota moves to "0" below.
                     Distribution(criteria="freegame", quota=0.005, conditions=freegame_cond),
-                    Distribution(criteria="0",        quota=0.495995, win_criteria=0.0, conditions=zerowin_cond),
+                    Distribution(criteria="0",        quota=0.494, win_criteria=0.0, conditions=zerowin_cond),
                     Distribution(criteria="basegame", quota=0.499, conditions=basegame_cond),
                 ],
             ),
@@ -262,11 +284,11 @@ class GameConfig(Config):
                 distributions=[
                     Distribution(
                         criteria="wincap",
-                        quota=0.00001,
+                        quota=0.002,
                         win_criteria=mode_maxwins["bonus"],
                         conditions=wincap_cond,
                     ),
-                    Distribution(criteria="freegame", quota=0.99999, conditions=freegame_cond),
+                    Distribution(criteria="freegame", quota=0.998, conditions=freegame_cond),
                 ],
             ),
         ]
