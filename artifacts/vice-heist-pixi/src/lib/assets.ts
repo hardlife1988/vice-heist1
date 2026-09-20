@@ -5,9 +5,13 @@ export const SYMBOL_IDS: SymbolId[] = ["W", "SC", "BV", "H1", "H2", "H3", "H4", 
 
 export const symbolAssetKey = (symbol: SymbolId): string => `symbol_${symbol}`;
 
-export const symbolSrc = (symbol: SymbolId): string => assetUrl(`assets/symbols/${symbol}.png`);
+export const symbolSrc = (symbol: SymbolId): string => assetUrl(`assets/symbols/${symbol}.webp`);
 
 export const BACKGROUND_SRC = () => assetUrl("assets/background.jpg");
+
+// Portrait 9:16 plate for phones. Not yet selected by any component —
+// the renderer still uses BACKGROUND_SRC unconditionally.
+export const BACKGROUND_MOBILE_SRC = () => assetUrl("assets/background-mobile.webp");
 
 export const SYMBOL_LABEL: Record<SymbolId, string> = {
   W: "Wild",
