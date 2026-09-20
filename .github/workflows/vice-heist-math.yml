@@ -3,13 +3,17 @@ name: Vice Heist math generation
 # Driven by workflow_dispatch so a run can be triggered on demand with a chosen
 # scale. A small run (5k) is a design smoke test; a publish run is 100k per mode.
 #
-# Runs entirely on a GitHub-hosted ubuntu-latest runner (4 vCPU / 16 GB), which
-# is what this generation actually needs -- the agent sandbox has 2 cores and
-# ~1 GB and cannot hold a 100k-round bonus book.
+# Runs on a GitHub-hosted ubuntu-latest runner (4 vCPU / 16 GB), which is what
+# this generation actually needs.
 #
 # NOTE: games/vice_heist/optimize_rtp.py is pure Python ("No Rust required") --
 # the vendored optimization_program/ Rust crate is NOT used by this game, so no
 # Rust toolchain step is needed here.
+#
+# The run commits library/VERIFY.json back to the branch. That is deliberate:
+# it makes the gate verdict readable from the repository itself rather than only
+# from run logs, so the numbers survive log retention and are reviewable in the
+# commit history.
 
 on:
   workflow_dispatch:
@@ -27,6 +31,8 @@ jobs:
   generate:
     runs-on: ubuntu-latest
     timeout-minutes: 350
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
@@ -69,39 +75,39 @@ jobs:
           PYTHONPATH: ${{ github.workspace }}/math-sdk
         run: python3 games/vice_heist/run.py
 
-      - name: Summarise publish files
+      - name: Verify against Stake 3-star RGS limits
+        id: verify
         if: always()
-        working-directory: math-sdk/games/vice_heist/library
+        working-directory: math-sdk/games/vice_heist
+        run: python3 verify_gate.py
+
+      - name: Commit verification report
+        if: always()
+        working-directory: math-sdk/games/vice_heist
         run: |
-          echo "--- publish_files ---"
-          ls -la publish_files/ || echo "publish_files missing"
-          echo "--- lookup table RTP / max payout per mode ---"
-          for f in publish_files/lookUpTable_*_0.csv; do
-            [ -e "$f" ] || continue
-            python3 - "$f" <<'PY'
-          import csv, sys
-          path = sys.argv[1]
-          wsum = psum = 0.0
-          mx = 0.0
-          with open(path, newline="") as fh:
-              for row in csv.reader(fh):
-                  if not row:
-                      continue
-                  w, pay = float(row[1]), float(row[2]) / 100.0
-                  if w <= 0:
-                      continue
-                  wsum += w
-                  psum += w * pay
-                  mx = max(mx, pay)
-          print(f"{path}: rows_rtp={psum/wsum if wsum else 0:.6f} max_payout={mx:.2f}x")
-          PY
-          done
+          if [ ! -f library/VERIFY.json ]; then
+            echo "no VERIFY.json produced; nothing to commit"
+            exit 0
+          fi
+          git config user.name "vice-heist-ci"
+          git config user.email "ci@users.noreply.github.com"
+          cp library/VERIFY.json "$RUNNER_TEMP/VERIFY.json"
+          git stash --include-untracked || true
+          git pull --rebase || true
+          mkdir -p library
+          cp "$RUNNER_TEMP/VERIFY.json" library/VERIFY.json
+          git add -f library/VERIFY.json
+          git commit -m "ci: gate report, run ${{ github.run_id }}, num_sims=${{ inputs.num_sims }}" \
+            || { echo "no change to commit"; exit 0; }
+          git push
 
       - name: Upload publish files
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: vice-heist-math-${{ inputs.num_sims }}
-          path: math-sdk/games/vice_heist/library/publish_files/
+          path: |
+            math-sdk/games/vice_heist/library/publish_files/
+            math-sdk/games/vice_heist/library/VERIFY.json
           if-no-files-found: error
           retention-days: 30
