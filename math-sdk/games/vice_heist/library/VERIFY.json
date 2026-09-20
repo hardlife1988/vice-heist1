@@ -1,0 +1,48 @@
+{
+  "limits": {
+    "rtp": 0.967,
+    "cvar": 800.0,
+    "etl10k": 0.8,
+    "etl40b": 0.9,
+    "prob5k": 0.01,
+    "prob10k": 0.005
+  },
+  "modes": {
+    "base": {
+      "rows": 5000,
+      "max_payout": 10000.0,
+      "rtp": 0.96,
+      "cvar": 88.89,
+      "tail_starts_at": 87.9,
+      "etl10k": 0.001,
+      "etl40b": 0.35821,
+      "prob5k": 1e-07,
+      "prob10k": 1e-07,
+      "cost": 1.0,
+      "passes": true,
+      "violations": []
+    },
+    "bonus": {
+      "rows": 5000,
+      "max_payout": 100.0,
+      "rtp": 0.96,
+      "cvar": 6.08,
+      "tail_starts_at": 4.33,
+      "etl10k": 0.0,
+      "etl40b": 0.001,
+      "prob5k": 0.0,
+      "prob10k": 0.0,
+      "cost": 100.0,
+      "passes": true,
+      "violations": []
+    }
+  },
+  "verdict": "pass",
+  "files": {
+    "books_base.jsonl.zst": 419000,
+    "books_bonus.jsonl.zst": 6534932,
+    "index.json": 364,
+    "lookUpTable_base_0.csv": 99523,
+    "lookUpTable_bonus_0.csv": 109938
+  }
+}
