@@ -24,7 +24,7 @@ class GameConfig(Config):
         self.game_id       = "vice_heist"
         self.provider_number = 0
         self.working_name  = "Vice Heist"
-        self.wincap        = 900.0
+        self.wincap        = 10000.0
         self.win_type      = "lines"
         self.rtp           = 0.96
         self.construct_paths()
@@ -175,9 +175,19 @@ class GameConfig(Config):
                 self.basegame_type: {"BR0": 1},
                 self.freegame_type: {"FR0": 1, "FRWCAP": 5},
             },
+            # Raised to make 10,000x REACHABLE on the forced-cap path. The cap
+            # path is force-capped to win_criteria, but the multiplier table
+            # still has to be able to get there; the old ceiling of 50x was
+            # sized for a 900x cap.
+            # This table is deliberately NOT shared with the regular freegame
+            # path: it is the broad band of large-but-under-cap wins on the
+            # REGULAR path that drives CVaR, which is what failed Stake's
+            # 3-star gate at the original 10,000x. Keeping the heavy
+            # multipliers isolated to the force-capped path is what lets the
+            # ceiling rise without the tail widening.
             "mult_values": {
                 self.basegame_type: {1: 1},
-                self.freegame_type: {2: 10, 3: 20, 4: 50, 5: 60, 10: 100, 20: 90, 50: 50},
+                self.freegame_type: {5: 10, 10: 30, 20: 60, 50: 90, 100: 70, 200: 40, 500: 15},
             },
             "scatter_triggers": {4: 1, 5: 2},
             "force_wincap": True,
@@ -223,7 +233,7 @@ class GameConfig(Config):
                 distributions=[
                     Distribution(
                         criteria="wincap",
-                        quota=0.000002,
+                        quota=0.000005,
                         win_criteria=mode_maxwins["base"],
                         conditions=wincap_cond,
                     ),
@@ -237,7 +247,7 @@ class GameConfig(Config):
                     # drives a meaningful, but no longer dominant, share of
                     # base-mode RTP; the freed-up quota moves to "0" below.
                     Distribution(criteria="freegame", quota=0.005, conditions=freegame_cond),
-                    Distribution(criteria="0",        quota=0.495998, win_criteria=0.0, conditions=zerowin_cond),
+                    Distribution(criteria="0",        quota=0.495995, win_criteria=0.0, conditions=zerowin_cond),
                     Distribution(criteria="basegame", quota=0.499, conditions=basegame_cond),
                 ],
             ),
@@ -252,11 +262,11 @@ class GameConfig(Config):
                 distributions=[
                     Distribution(
                         criteria="wincap",
-                        quota=0.0022,
+                        quota=0.00001,
                         win_criteria=mode_maxwins["bonus"],
                         conditions=wincap_cond,
                     ),
-                    Distribution(criteria="freegame", quota=0.9978, conditions=freegame_cond),
+                    Distribution(criteria="freegame", quota=0.99999, conditions=freegame_cond),
                 ],
             ),
         ]
